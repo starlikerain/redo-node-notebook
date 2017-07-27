@@ -6,6 +6,8 @@
  * @desc [第一步]
  */
 const fs = require('fs');
+const path = require('path');
+const staticServer = require('./static-server');
 
 class App {
     constructor() {
@@ -13,12 +15,12 @@ class App {
     }
     initServer() {
         // 初始化工作
-        let _package = require('../package.json');
         return (req, res) => {
-            // 每个请求逻辑
-            fs.readFile('./public/index.html', 'utf-8', (err, data) => {
-                res.end(JSON.stringify(_package))
-            })
+            let { url } = req;
+            // 每个请求逻辑 根据URL 进行代码分发
+            let body = staticServer(url);
+            res.writeHead(200, 'resolve ok', {'author':'Evan Yann'});
+            res.end(body);
         }
     }
 }
