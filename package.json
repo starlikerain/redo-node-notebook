@@ -1,0 +1,26 @@
+{
+  "name": "redo-node-notebook",
+  "version": "1.0.0",
+  "description": "redo",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon --inspect index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/starlikerain/redo-node-notebook.git"
+  },
+  "author": "Evan Yann",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/starlikerain/redo-node-notebook/issues"
+  },
+  "homepage": "https://github.com/starlikerain/redo-node-notebook#readme",
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "nodemon": "^1.11.0"
+  },
+  "devDependencies": {
+    "axios": "^0.16.2"
+  }
+}
