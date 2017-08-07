@@ -18,9 +18,13 @@ setTimeout(() => {
             console.log(err);
         }
     });
+    // 模拟post
     $.ajax({
         url: '/list.action',
-        method: 'get',
+        method: 'post',
+        data: JSON.stringify([
+            "name", "EvanYann"
+        ]),
         // return an Array
         success: function (arr) {
             var liStr = arr.map((ele) => {

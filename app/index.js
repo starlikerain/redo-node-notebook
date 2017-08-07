@@ -9,6 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const staticServer = require('./static-server');
 const apiServer = require('./api/index');
+const urlParser = require('./url-parser/idnex'); // 处理客户端request的 url的query参数，body参数，method参数
 
 class App {
     constructor() {
@@ -18,28 +19,41 @@ class App {
     initServer() {
         // 初始化工作
         return (req, res) => {
-            let {url} = req;
+            let {url, method} = req;
 
-            let body = '';
-            let headers = {};
-            if (url.match('action')) {
-                apiServer(url).then(val => {
-                    body = JSON.stringify(val);
-                    headers = {
-                        'Content-Type': 'application/json'
-                    };
-                    let finalHeader = Object.assign(headers, {'Author': 'StarLikeRain'});
-                    res.writeHead(200, 'resolve ok', finalHeader);
-                    res.end(body);
-                });
-            } else {
-                // 如果不是index.html的js发出请求
-                staticServer(url).then((body) => {
-                    let finalHeader = Object.assign(headers, {'Author': 'StarLikeRain'});
-                    res.writeHead(200, 'resolve ok', finalHeader);
+            req.context = {
+                body: '',
+                query: {},
+                method: 'get'
+            }
+
+            // 先给context的body query method赋值
+            urlParser(req)
+                .then(() => {
+                    return apiServer(req)
+                })
+                .then(val => {
+                    // 因为apiServer 给出的要么 [] 要么是 undefined
+                    if (!val) {
+                        return staticServer(req)
+                    } else {
+                        return val
+                    }
+                })
+                .then(val => {
+                    let base = {'Author': 'StarLikeRain'}
+                    let body = ''
+
+                    if (val instanceof Buffer) {
+                        // 如果是Buffer类型，那就是静态页
+                        body = val
+                    } else {
+                        body = JSON.stringify(val);
+                        let finalHeader = Object.assign({'Content-Type': 'application/json'}, base);
+                        res.writeHead(200, 'resolve ok', finalHeader);
+                    }
                     res.end(body);
                 })
-            }
         }
     }
 }
