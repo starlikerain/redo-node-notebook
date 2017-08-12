@@ -6,35 +6,38 @@
  * @desc [api所谓api就是给js调用用的]
  */
 
-// api server
-// 处理root shop变成列表
+// 处理 XHR请求
 
-module.exports = (req) => {
-    let {url, method, context} = req;
+module.exports = (ctx) => {
+
+    let { url, method } = ctx.req
+    let { resCtx, reqCtx, res } = ctx
 
     let apiMap = {
         '/list.action': ['吃饭', '睡觉', '洗澡澡'],
-        '/user.action': ['evan', 'male', 'human']
-    };
+        '/user.action': ['evan', 'male', '人类']
+    }
 
     method = method.toLowerCase()
 
-    if (method === 'get') {
-        return Promise.resolve(apiMap[url]);
-    } else {
-        // post 请求处理body的逻辑放在url-parser
-        let {body} = context
-
-        return Promise.resolve(body)
-
-        // 处理post
-        // return new Promise((resolve, reject) => {
-        //     let data = ''
-        //     req.on('data', (chunk) => {
-        //         data += chunk
-        //     }).on('end', () => {
-        //         resolve(JSON.parse(data))
-        //     })
-        // })
-    }
+    return Promise.resolve({
+        then: (resolve, reject) => {
+            // 只处理 XHR
+            if (url.match('action')) {
+                if (method === 'get') {
+                    // Unhandled promise rejection (rejection id: 4): TypeError:
+                    // First argument must be a string or Buffer
+                    // 所以写JSON.stringify
+                    resCtx.body = JSON.stringify(apiMap[url])
+                } else {
+                    // 如果是post 就把url-parser获得的body，
+                    // 赋值给 resCtx.body
+                    let { body } = reqCtx
+                    resCtx.body = JSON.stringify(body)
+                }
+                res.setHeader('Content-Type', 'application/json')
+            }
+            resolve()
+        }
+    })
 };

@@ -12,23 +12,33 @@ const fs = require('fs');
 // 分出一个 concat 路径的方法
 let getPath = url => path.resolve(process.cwd(), 'public', `.${url}`);
 
-let staticFunc = (req) => {
+let staticFunc = (ctx) => {
 
-    let { url, method } = req;
+    let {url, method} = ctx.req;
+    let {resCtx} = ctx
 
     return new Promise((resolve, reject) => {
-        if (url === '/') {
-            url = '/index.html'
-        }
-        // 组合路径，因为需要  ‘node服务器启动路径+public+具体路径’;
-        let _path = getPath(url);
-        let body = fs.readFile(_path, (err, data) => {
-            if (err) {
-                resolve(`NOT FOUND ${err.stack}`);
-            } else {
-                resolve(data)
+
+        // 不触碰 XHR 的东西
+        if (url.match('action')) {
+            resolve()
+        } else {
+            if (url === '/') {
+                url = '/index.html'
             }
-        })
+            // 组合路径，因为需要  ‘node服务器启动路径+public+具体路径’;
+            let _path = getPath(url);
+            let body = fs.readFile(_path, (err, data) => {
+
+                if (err) {
+                    resCtx.body = `NOT FOUND ${err.stack}`
+                } else {
+                    resCtx.body = data
+                }
+
+                resolve()
+            })
+        }
     });
 };
 
