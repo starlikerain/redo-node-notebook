@@ -29,17 +29,6 @@ class App {
             })
         }
 
-        // 上面实例化 就是这个样子的
-        // this.middlewareChain = this.middlewareChain.then(() => {
-        //     return middlewareArr[0](context)
-        // })
-        // this.middlewareChain = this.middlewareChain.then(() => {
-        //     return middlewareArr[1](context)
-        // })
-        // this.middlewareChain = this.middlewareChain.then(() => {
-        //     return middlewareArr[2](context)
-        // })
-
         return this.middlewareChain
     }
 
