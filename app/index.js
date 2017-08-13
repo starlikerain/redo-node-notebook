@@ -3,17 +3,44 @@
  * @email [pengyaokang@icloud.com]
  * @create date 2017-07-27 08:17:18
  * @modify date 2017-07-27 08:17:18
- * @desc [第一步]
+ * @desc [第一步核心index.js]
  */
 const fs = require('fs')
 const path = require('path')
-const staticServer = require('./static-server')
-const apiServer = require('./api/index')
-const urlParser = require('./url-parser/idnex') // 处理客户端request的 url的query参数，body参数，method参数
 
 class App {
     constructor() {
+        this.middlewareArr = []
 
+        // 设计一个空的 promise
+        this.middlewareChain = Promise.resolve()
+    }
+
+    use(middleware) {
+        this.middlewareArr.push(middleware)
+    }
+
+    composeMiddleware(context) {
+        let { middlewareArr } = this
+
+        for (let middleware of middlewareArr) {
+            this.middlewareChain = this.middlewareChain.then(() => {
+                return middleware(context)
+            })
+        }
+
+        // 上面实例化 就是这个样子的
+        // this.middlewareChain = this.middlewareChain.then(() => {
+        //     return middlewareArr[0](context)
+        // })
+        // this.middlewareChain = this.middlewareChain.then(() => {
+        //     return middlewareArr[1](context)
+        // })
+        // this.middlewareChain = this.middlewareChain.then(() => {
+        //     return middlewareArr[2](context)
+        // })
+
+        return this.middlewareChain
     }
 
     initServer() {
@@ -35,21 +62,13 @@ class App {
             }
 
             // 先给context的body query method赋值
-            urlParser(context)
-                .then(() => {
-                    // XHR JS网络请求
-                    return apiServer(context)
-                })
-                .then(() => {
-                    // HTML CSS IMG 请求
-                    return staticServer(context)
-                })
+            this.composeMiddleware(context)
                 .then(() => {
                     let base = { 'Author': 'StarLikeRain' }
-                    let { body } = context.resCtx
+                    let { body, headers } = context.resCtx
 
                     // writeHead 会覆盖 setHeader(name, value)
-                    res.writeHead(200, 'resolve ok', base)
+                    res.writeHead(200, 'resolve ok', Object.assign(base, headers))
                     res.end(body)
                 })
         }
